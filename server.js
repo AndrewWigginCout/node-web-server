@@ -21,7 +21,7 @@ function generate(root, relpath) {
     if (stat && stat.isDirectory()) {
       html+=`<li><a href="${file}/">d ${file}/</a></li>\n`;
     } else {
-      html+=`<li><a href="${file}">f ${file}</a><audio controls src="${file}" ></audio></li>\n`;
+      html+=`<li><a href="${file}">f ${file}</li>\n`;
     }
 
   });
@@ -32,6 +32,21 @@ function generate(root, relpath) {
   //console.log(html);
   return html
   }
+function generatejson(root, relpathjson) {
+  console.log("relpathjson=", relpathjson);
+  var tracklist = [];
+  relpath = relpathjson.slice(0,relpathjson.length - 5)+'/';
+  console.log("sliced relpath=", relpath);
+  files = fs.readdirSync(root + relpath);
+  files.forEach(file => {
+    console.log("file=", file);
+    var stat = fs.statSync(root + relpath + file);
+    if (stat && stat.isFile() && file.split(".").pop() == "mp3") {
+      tracklist.push(relpath + file);}
+  });
+  console.log(tracklist);
+  return JSON.stringify(tracklist);  
+}
 
 const host = 'localhost';
 const port = 8080;
@@ -42,6 +57,13 @@ const requestListener = function (req, res) {
   var relpath = decodeURIComponent(req.url);
   console.log("relpath=", relpath)
     
+  if (relpath.split(".").pop() == "json") {
+    console.log("req json");
+    res.setHeader("Content-Type", "text/json");
+    res.writeHead(200);
+    res.end(generatejson(root, relpath));
+    return;
+  }
   var stat = fs.statSync(root + relpath);
   if (stat && stat.isDirectory()){
     console.log("is directory");
