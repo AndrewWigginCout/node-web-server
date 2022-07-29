@@ -21,7 +21,7 @@ function generate(root, relpath) {
     if (stat && stat.isDirectory()) {
       html+=`<li><a href="${file}/">d ${file}/</a></li>\n`;
     } else {
-      html+=`<li><a href="${file}">f ${file}</a></li>\n`;
+      html+=`<li><a href="${file}">f ${file}</a><audio controls src="${file}" ></audio></li>\n`;
     }
 
   });
