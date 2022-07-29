@@ -2,22 +2,22 @@ const http = require("http");
 const fs = require('fs');
 console.log("__dirname=", __dirname)
 function generate(root, relpath) {
-  console.log("root=",root);
+  console.log("gen root=",root);
+  console.log("gen relpath=",relpath);
+  console.log("gen full=",root+relpath);
   console.log("relpath=",relpath);
-  console.log("full=",root+relpath);
-  var relpathnoslash = relpath.slice(0,relpath.length - 1);
   files = fs.readdirSync(root+relpath);
   var track_list = [];
   var ul = `<ul>
   <li><a href="..">..</li>
   `
   files.forEach(file => {
-    console.log("file=", file);
+    console.log("gen file=", file);
     var stat = fs.statSync(root+relpath+file);
     if (stat && stat.isDirectory()) {
       ul +=`<li><a href="./${file}/">d ${file}/</a></li>\n`;
     } else {
-      ul +=`<li><a href="./${file}">f ${file}</li>\n`;
+      ul +=`<li><a href="./${file}">f ${file}</a></li>\n`;
       if (file.split('.').pop() == 'mp3'){
         track_list.push({
           name:"name",
@@ -251,7 +251,7 @@ function generatejson(root, relpathjson) {
   return rv;  
 }
 
-const host = 'localhost';
+const host = '10.1.1.4';
 const port = 8080;
 const root = '/run/media/public/sdb2/_s/_ks/music'
 var css = `body {
@@ -374,53 +374,73 @@ i.fa-play-circle, i.fa-pause-circle, i.fa-step-forward, i.fa-step-backward {
 }`
 
 const requestListener = function (req, res) {
-  console.log("req.url=", req.url);
+  console.log("RL req.url=", req.url);
+  console.log("RL root=", root);
   var relpath = decodeURIComponent(req.url);
-  console.log("relpath=", relpath)
+  console.log("RL relpath=", relpath)
+  // if (relpath=='/') {
+  //   relpath = '';
+  // }
+  var fullpath = root + relpath;
+  console.log("RL fullpath=", fullpath);
   
 
   if (req.url == "/style.css") {
+    //console.log("req css");
     res.setHeader("Content-Type", "text/css");
     res.writeHead(200);
     res.end(css);
     return;
   }
   if (relpath.split(".").pop() == "json") {
-    console.log("req json");
+    //console.log("req json");
     res.setHeader("Content-Type", "text/json");
     res.writeHead(200);
     res.end(generatejson(root, relpath));
     return;
   }
-  var stat = fs.statSync(root + relpath);
-  console.log("stat=", stat);
-  console.log("stat.isDirectory()=", stat.isDirectory());
-  console.log("stat.isFile()=", stat.isFile());
+  try {
+    var stat = fs.statSync(fullpath);
+  } catch{
+    return;
+  }
+  //console.log("stat=", stat);
+  //console.log("stat.isDirectory()=", stat.isDirectory());
+  //console.log("stat.isFile()=", stat.isFile());
+  
   if (stat && stat.isDirectory()){
-    console.log("is directory");
+    // if (relpath.length>1 && relpath[relpath.length]!='/'){
+    //   relpath+='/';
+    // }
+    //console.log("is directory");
+
+    if (relpath[relpath.length-1]!='/') relpath+='/';
     res.setHeader("Content-Type", "text/html");
     res.writeHead(200);
     var content = generate(root,relpath);
     res.end(content);
     return;
   }
-  if (stat && stat.isFile()){
-    console.log("else file");
-    try {
-    var contents = fs.readFileSync(root + relpath);
-    res.writeHead(200);
-    res.end(contents);
-    } catch (err) {
-      console.log("caught error");
+
+  fs.readFile(root + relpath, function(error, data) {
+    console.log("req some file or something");
+    if (error) {
+      console.log("error=", error);
       res.writeHead(404);
-      res.end("<h1>404</h1");
+      res.write('Error: File Not Found');
+    } else {
+      res.write(data);
     }
-    //res.setHeader("Content-Type", "text/html")
-    console.log("else file close");
-    return;
-  }
+    res.end();
+  })
+
+
 }
 const server = http.createServer(requestListener);
-server.listen(port, host, () => {
+server.listen(port, host, (error) => {
+  if (error) {
+    console.log('Something went wrong', error);
+  } else {
   console.log(`Server is running on http://${host}:${port}`);
+  }
 });
