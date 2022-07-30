@@ -6,22 +6,27 @@ const host = '10.1.1.4';
 const port = 8080;
 const root = '/run/media/public/sdb2/_s/_ks/music'
 
-var css = fs.readFileSync(path.join(__dirname, "style.css"));
+var head        = fs.readFileSync(path.join(__dirname, "head.html"));
+var css         = fs.readFileSync(path.join(__dirname, "style.css"));
 var player_html = fs.readFileSync(path.join(__dirname, "player.html"));
 var player_js   = fs.readFileSync(path.join(__dirname, "player.js"));
-var head        = fs.readFileSync(path.join(__dirname, "head.html"));
 
 function directory_listing(root, relpath) {
   // make sure that root has no trailing / and that relpath starts and ends with /
   console.log("gen root=",root);
   console.log("gen relpath=",relpath);
-  console.log("gen full=",root+relpath);
+  var fullpath = root + relpath;
+  console.log("gen fullpath=", fullpath);
   console.log("relpath=",relpath);
-  files = fs.readdirSync(root+relpath);
-  var track_list = [];
+  var pathseg = fullpath.split(path.sep);
+  console.log("pathseg=", pathseg)
+  var mp3_list = [];
+  var possible_images = ["Folder.jpg", "folder.jpg", "Cover.jpg", "cover.jpg", "AlbumArtSmall.jpg"];
+  var cover;
   var ul = `<ul>
   <li><a href="..">..</li>
   `
+  files = fs.readdirSync(fullpath);
   files.forEach(file => {
     console.log("gen file=", file);
     var stat = fs.statSync(root+relpath+file);
@@ -30,14 +35,24 @@ function directory_listing(root, relpath) {
     } else {
       ul +=`<li><a href="./${file}">f ${file}</a></li>\n`;
       if (file.split('.').pop() == 'mp3'){
-        track_list.push({
-          name:"name",
-          artist:"artist",
-          path: relpath + file
-        })
+        mp3_list.push(file);
+      }
+      if (possible_images.includes(file)){
+        console.log("cover art found");
+        cover = file;
       }
     }
   });
+  console.log("cover=",cover);
+  var track_list=[];
+  mp3_list.forEach(file => {
+    track_list.push({
+      image: cover,
+      path: file,
+      name: file,
+      artist: pathseg[pathseg.length-3]
+    })
+  })
   ul += `<ul>\n`
   //console.log("track_list=", track_list);
   var dl=`

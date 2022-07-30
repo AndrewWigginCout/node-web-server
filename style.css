@@ -6,7 +6,7 @@ body {
   }
   
   .player {
-    background-color: blue;
+    background-color: dimgray;
     height: 95vh;
     display: flex;
     align-items: center;
