@@ -2,7 +2,7 @@ const http = require("http");
 const fs   = require('fs');
 const path = require('path');
 
-const host = '10.1.1.4';
+const host = '0.0.0.0';
 const port = 8080;
 const root = '/run/media/public/sdb2/_s/_ks/music'
 
@@ -22,6 +22,7 @@ function directory_listing(root, relpath) {
   console.log("pathseg=", pathseg)
   var mp3_list = [];
   var possible_images = ["Folder.jpg", "folder.jpg", "Cover.jpg", "cover.jpg", "AlbumArtSmall.jpg"];
+  var possible_formats = ["wav", "mp3", "aac", "ogg", "webm", "flac", "m4a"];
   var cover;
   var ul = `<ul>
   <li><a href="..">..</li>
@@ -34,10 +35,10 @@ function directory_listing(root, relpath) {
       ul +=`<li><a href="./${file}/">d ${file}/</a></li>\n`;
     } else {
       ul +=`<li><a href="./${file}">f ${file}</a></li>\n`;
-      if (file.split('.').pop() == 'mp3'){
+      if (possible_formats.includes(file.split('.').pop().toLowerCase())){
         mp3_list.push(file);
       }
-      if (possible_images.includes(file)){
+      if (possible_images.includes(file.toLowerCase())){
         console.log("cover art found");
         cover = file;
       }
