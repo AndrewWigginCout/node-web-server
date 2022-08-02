@@ -7,8 +7,7 @@ let track_artist = document.querySelector(".track-artist");
 let playpause_btn = document.querySelector(".playpause-track");
 let next_btn = document.querySelector(".next-track");
 let prev_btn = document.querySelector(".prev-track");
-let toggle_btn = document.querySelector(".stop_after");
-
+let stop_after_chk = document.querySelector(".stop-after-chk");
 
 let seek_slider = document.querySelector(".seek_slider");
 let volume_slider = document.querySelector(".volume_slider");
@@ -17,7 +16,6 @@ let total_duration = document.querySelector(".total-duration");
 
 let track_index = 0;
 let isPlaying = false;
-let stop_after = false;
 let updateTimer;
 
 // Create new audio element
@@ -38,16 +36,6 @@ function random_bg_color() {
 
   // Set the background to that color
   //player_background.style.background = bgColor;
-}
-
-function toggle() {
-  if (stop_after) {
-    toggle_btn.innerHTML = "stop after song finishes";
-    stop_after = false;
-  } else {
-    toggle_btn.innerHTML = "continue after song finishes";
-    stop_after = true;
-  }
 }
 
 function loadTrack(track_index) {
@@ -94,22 +82,21 @@ function pauseTrack() {
 function nextTrack() {
   if (track_index < track_list.length - 1)
     track_index += 1;
-  else{
+  else
     track_index = 0;
-    return;}
   loadTrack(track_index);
-  if (!stop_after){
-        playTrack();
-      } else {
+  if (stop_after_chk.checked || track_index == 0){
         playpause_btn.innerHTML = '<i class="fa fa-play-circle fa-5x"></i>';
-      }
-    
+        isPlaying = false;
+      } else {
+        playTrack();
+      }    
 }
 
 function prevTrack() {
   if (track_index > 0)
     track_index -= 1;
-  else track_index = track_list.length;
+  else track_index = track_list.length - 1;
   loadTrack(track_index);
   playTrack();
 }
